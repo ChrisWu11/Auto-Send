@@ -1,8 +1,8 @@
 const Router = require("@koa/router");
-const Auth = require("../../middlewares/auth");
 var robot = require("robotjs");
 const { exec } = require('child_process');
 const iconv = require('iconv-lite');
+const users = require('../../data/users')
 
 const contentRouter = new Router({
   // 设置路由前缀 /content
@@ -15,8 +15,8 @@ function sleep (time){
 
 // 获取文章内容接口
 contentRouter.get("/", async (ctx) => {
+  console.log(users)
   openWX();
-  sleep(500);
   search('鸿金')
   ctx.body = "发送成功";
 });
@@ -30,52 +30,51 @@ function openWX(){
 }
 
 async function search(name){
-  console.log(1);
-  robot.keyToggle("control", "down");
-  robot.keyTap("f");
-  await robot.keyToggle("control", "up");
-  console.log(2);
+  for(let user of users){
+    console.log(user.nickname)
+    robot.keyToggle("control", "down");
+    robot.keyTap("f");
+    await robot.keyToggle("control", "up");
+    await exec('clip').stdin.end(iconv.encode(user.nickname, 'gbk'));
+    await sleep(200);
 
-  // sleep(200);
-  await exec('clip').stdin.end(iconv.encode(name, 'gbk'));
-  await sleep(200);
-  // robot.typeString(name);
-  robot.keyToggle("control", "down");
-  robot.keyTap("v");
-  robot.keyToggle("control", "up");
-  console.log(3);
 
-  // sleep(1000);
-  robot.keyTap("enter");
-  // sleep(2500);
-  console.log(4);
+    robot.keyToggle("control", "down");
+    robot.keyTap("v");
+    robot.keyToggle("control", "up");
 
-  sendMsg('自动发送测试');
+
+    robot.keyTap("enter");
+    console.log(111)
+    await sendMsg(user.msg);
+    await sleep(200);
+  }
+  // robot.keyToggle("control", "down");
+  // robot.keyTap("f");
+  // await robot.keyToggle("control", "up");
+  // await exec('clip').stdin.end(iconv.encode(name, 'gbk'));
+  // await sleep(200);
+
+  // robot.keyToggle("control", "down");
+  // robot.keyTap("v");
+  // robot.keyToggle("control", "up");
+
+
+  // robot.keyTap("enter");
+ 
+
+  // sendMsg('自动发送测试');
 }
 
 
 async function sendMsg(msg){
   await sleep(200)
-  console.log(5);
-
   await exec('clip').stdin.end(iconv.encode(msg, 'gbk'));
-  console.log(6);
-
   await sleep(200);
   robot.keyToggle("control", "down");
   robot.keyTap("v");
   robot.keyToggle("control", "up");
-  console.log(7);
-
-  // sleep(2500);
   robot.keyTap("enter");
-  console.log(8);
-
 }
-
-// 新增文章内容接口
-contentRouter.post("/", new Auth(1).middleware, async (ctx) => {
-  ctx.body = "新增文章内容成功";
-});
 
 module.exports = contentRouter;
