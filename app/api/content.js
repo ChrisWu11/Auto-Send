@@ -17,7 +17,7 @@ function sleep (time){
 contentRouter.get("/", async (ctx) => {
   console.log(users)
   openWX();
-  search('鸿金')
+  search('Chris Wu')
   ctx.body = "发送成功";
 });
 
